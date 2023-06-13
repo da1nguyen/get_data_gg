@@ -11,7 +11,7 @@ data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
 # Yêu cầu dữ liệu từ URL
 response = requests.get(data_url)
 
-# Kiểm tra xem có lỗi trong quá trình tải dữ liệu không 
+# Kiểm tra xem có lỗi trong quá trình tải dữ liệu không
 assert response.status_code == 200, 'Could not download the data'
 
 # Đọc dữ liệu vào DataFrame
@@ -36,10 +36,10 @@ trainset = dataset.build_full_trainset()
 model.fit(trainset)
 
 # Lấy danh sách sản phẩm chưa được người dùng đánh giá
-items_to_recommend = trainset.build_anti_testset().for_user(user_id)
+items_to_recommend = [iid for iid in trainset.all_items() if iid not in trainset.ur[user_id]]
 
 # Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
-predictions = model.test(items_to_recommend)
+predictions = [model.predict(user_id, iid) for iid in items_to_recommend]
 
 # Sắp xếp dự đoán theo xếp hạng giảm dần
 top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
