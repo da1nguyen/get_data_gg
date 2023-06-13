@@ -1,22 +1,26 @@
-import pandas as pd
-import gzip
-import json
+import requests
+import os
+import tempfile
 
-def parse(path):
-    g = gzip.open(path, 'r')
-    for l in g:
-        yield json.loads(l)
+def download_file(url):
+    local_filename = url.split('/')[-1]
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+    return f.name
 
-def get_df(path):
-    i = 0
-    df = {}
-    for d in parse(path):
-        df[i] = d
-        i += 1
-    return pd.DataFrame.from_dict(df, orient='index')
-
-# Đường dẫn tới dữ liệu
 data_path = 'http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Musical_Instruments_5.json.gz'
+
+# Tải file về máy
+local_path = download_file(data_path)
+
+# Tải dữ liệu
+df = get_df(local_path)
+
+# Xóa file tạm sau khi đã sử dụng
+os.remove(local_path)
 
 # Tải dữ liệu
 df = get_df(data_path)
