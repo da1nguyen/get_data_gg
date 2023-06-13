@@ -8,8 +8,12 @@ from surprise import Dataset, Reader, NMF
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
 # Tải dữ liệu từ link Google Drive trực tiếp vào DataFrame
-url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
-data = pd.read_csv(url)
+file_id = data_url.split('/')[-2]
+csv_url = f'https://drive.google.com/uc?id={file_id}'
+csv_file = gdown.download(csv_url, quiet=False)
+
+# Đọc dữ liệu từ tệp CSV
+data = pd.read_csv(csv_file)
 
 # Tạo một đối tượng Reader để định dạng dữ liệu
 reader = Reader(rating_scale=(1, 5))
