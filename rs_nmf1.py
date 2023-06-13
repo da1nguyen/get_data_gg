@@ -4,16 +4,15 @@ import gdown
 import io
 from surprise import Dataset, Reader, NMF
 
-# Link tải dữ liệu từ Google Drive
+# Chỉ ra dữ liệu (ở đây chứa một file csv)
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
-# Tải dữ liệu từ link Google Drive trực tiếp vào DataFrame
-file_id = data_url.split('/')[-2]
-csv_url = f'https://drive.google.com/uc?id={file_id}'
-csv_file = gdown.download(csv_url, quiet=False)
+# Yêu cầu dữ liệu từ link kết url trên
+response = requests.get(data_url)
 
-# Đọc dữ liệu từ tệp CSV
-data = pd.read_csv(csv_file)
+# Kiểm tra xem link có thể nhận về trực tiếp hay không
+assert response.status_code == 200, 'Could not download the data'
+
 
 # Tạo một đối tượng Reader để định dạng dữ liệu
 reader = Reader(rating_scale=(1, 5))
