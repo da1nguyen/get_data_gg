@@ -37,6 +37,10 @@ result_df = pd.DataFrame({
 st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(result_df)
 
+# Hiển thị danh sách sản phẩm khuyến nghị
+st.write("Danh sách sản phẩm khuyến nghị:")
+st.write(result_df)
+
 
 
 ####################################################################################################
