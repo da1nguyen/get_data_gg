@@ -17,11 +17,11 @@ assert response.status_code == 200, 'Could not download the data'
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 pd.set_option('display.max_colwidth', None)
 
-# Hiển thị bảng dữ liệu
-st.dataframe(data)
-st.dataframe(data.iloc[:, [1,2,4,5,6]])
+# Chọn chỉ mục của các cột muốn hiển thị
+selected_columns = [1, 2, 4, 5, 7]  
 
-
+# Hiển thị DataFrame với các cột đã chọn
+st.dataframe(data.iloc[:, selected_columns])
 
 from surprise import Dataset, Reader
 from surprise.model_selection import cross_validate
