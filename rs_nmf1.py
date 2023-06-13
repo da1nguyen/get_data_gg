@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # Chỉ ra dữ liệu (ở đây chứa một file csv)
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
+
 # Yêu cầu dữ liệu từ link kết url trên
 response = requests.get(data_url)
 
