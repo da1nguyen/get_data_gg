@@ -34,7 +34,7 @@ k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", min_va
 # Xử lý khi nút được nhấn
 if st.button("Khuyến nghị"):
     # Kiểm tra xem ID người dùng có tồn tại trong dữ liệu không
-    if user_id not in trainset.all_users():
+    if user_id not in data['reviewerID'].unique():
         st.error("ID người dùng không hợp lệ.")
     else:
         # Lấy danh sách sản phẩm chưa được người dùng đánh giá
