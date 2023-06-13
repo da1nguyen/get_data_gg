@@ -35,7 +35,7 @@ reader = Reader(rating_scale=(1, 5))
 reviewerID asin overall reviewText
 
 column_mapping = {
-    'reviewID': 'userID',
+    'reviewerID': 'userID',
     'asin': 'itemID',
     'overall': 'rating'
     # Thêm các ánh xạ tên cột khác nếu cần thiết
