@@ -39,7 +39,7 @@ st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(result_df)
 
 # Tùy chỉnh độ rộng của select box
-st.markdown('<style>.css-1rtrjtb {width: 150px;}</style>', unsafe_allow_html=True)
+st.markdown('<style>.css-1rtrjtb {width: 10px;}</style>', unsafe_allow_html=True)
 
 
 ####################################################################################################
