@@ -19,7 +19,7 @@ data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 # Khai báo các tên cột trong DataFrame
 column_mapping = {
     'reviewerID': 'userID',
-    'asin': 'itemID',
+    'asin': 'ProductID',
     'overall': 'rating'
 }
 
@@ -30,7 +30,7 @@ data = data.rename(columns=column_mapping)
 reader = Reader(rating_scale=(1, 5))
 
 # Tạo một đối tượng Dataset từ DataFrame
-dataset = Dataset.load_from_df(data[['userID', 'itemID', 'rating']], reader)
+dataset = Dataset.load_from_df(data[['userID', 'ProductID', 'rating']], reader)
 
 # Xây dựng mô hình NMF với số lượng yếu tố latents = 10
 model = NMF(n_factors=10)
@@ -55,6 +55,6 @@ if st.button("Khuyến nghị"):
 
     # Hiển thị danh sách sản phẩm được khuyến nghị
     recommended_items = [pred.iid for pred in top_k_predictions]
-    recommended_df = data[data['itemID'].isin(recommended_items)][['itemID', 'itemName']]
+    recommended_df = data[data['ProductID'].isin(recommended_items)]
     st.write("Top", k, "sản phẩm được khuyến nghị:")
     st.dataframe(recommended_df)
