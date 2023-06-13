@@ -19,7 +19,7 @@ assert response.status_code == 200, 'Could not download the data'
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 pd.set_option('display.max_colwidth', None)
 
-st.dataframe(data[['reviewerID,'asin','overall']])
+st.dataframe(data[['reviewerID','asin','overall']])
 
 # Lấy danh sách mã sản phẩm
 items = data['asin'].unique()
