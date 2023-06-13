@@ -12,7 +12,7 @@ data = pd.read_csv(data_url)
 items = data['asin'].unique()
 
 # Hiển thị danh sách mã sản phẩm để chọn
-selected_item = st.selectbox("Chọn mã sản phẩm:", items, index=0)
+selected_item = st.selectbox("Chọn mã sản phẩm:", items, format_func=lambda x: x[:20])
 
 # Lấy chỉ số của sản phẩm được chọn
 item_index = data[data['asin'] == selected_item].index[0]
@@ -22,7 +22,7 @@ item_features = data.pivot(index='asin', columns='reviewerID', values='overall')
 similarity_matrix = cosine_similarity(item_features)
 
 # Nhập số lượng sản phẩm khuyến nghị
-k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", value=5, min_value=1, step=1, format="%d")
+k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", value=5, min_value=1, step=1)
 
 # Tìm top k sản phẩm tương tự
 similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
@@ -36,18 +36,6 @@ result_df = pd.DataFrame({
 # Hiển thị danh sách sản phẩm khuyến nghị
 st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(result_df)
-
-# Tùy chỉnh chiều dài của select box
-st.markdown(
-    """
-    <style>
-    .st-eb {
-        width: 20px !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 
 ####################################################################################################
