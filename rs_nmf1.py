@@ -1,40 +1,34 @@
 import pandas as pd
+import numpy as np
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Khai báo dữ liệu
+# Khai báo URL dữ liệu
 data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
 
 # Yêu cầu dữ liệu từ URL
 data = pd.read_csv(data_url)
 
-# Chọn cột reviewerID, asin, overall
-data = data[['reviewerID', 'asin', 'overall']]
+# Lấy danh sách mã sản phẩm
+items = data['asin'].unique()
 
-# Tạo ma trận đánh giá
-rating_matrix = data.pivot_table(index='reviewerID', columns='asin', values='overall')
+# Hiển thị danh sách mã sản phẩm để chọn
+selected_item = st.selectbox("Chọn mã sản phẩm:", items)
 
-# Tính độ tương đồng cosine giữa các sản phẩm
-similarity_matrix = cosine_similarity(rating_matrix.T)
+# Lấy chỉ số của sản phẩm được chọn
+item_index = np.int32(data[data['asin'] == selected_item].index[0])
 
-# Tạo ứng dụng Streamlit
-st.title("Hệ thống khuyến nghị sản phẩm")
+# Tính ma trận tương đồng cosine
+item_features = data.drop_duplicates(subset='asin', keep='first').pivot(index='asin', columns='reviewerID', values='overall').fillna(0)
+similarity_matrix = cosine_similarity(item_features)
 
-# Nhập mã sản phẩm
-item_id = st.text_input("Nhập mã sản phẩm:")
-
-# Số lượng sản phẩm khuyến nghị
-k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", min_value=1, max_value=10, step=1)
-
-# Tìm index của sản phẩm trong ma trận đánh giá
-item_index = data[data['asin'] == item_id].index[0]
+# Nhập số lượng sản phẩm khuyến nghị
+k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", value=5, min_value=1, step=1)
 
 # Tìm top k sản phẩm tương tự
 similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
 
-# Lấy thông tin sản phẩm khuyến nghị
-recommended_items = data.loc[similar_items, 'asin']
-
 # Hiển thị danh sách sản phẩm khuyến nghị
-st.write(f"Top {k} sản phẩm tương tự:")
+recommended_items = data[data.index.isin(similar_items)]['asin']
+st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(recommended_items)
