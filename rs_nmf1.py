@@ -55,11 +55,19 @@
 #         st.write("Top", k, "sản phẩm được khuyến nghị:")
 #         st.write(recommended_df)
 # Khai báo các thư viện
+# Khai báo các thư viện
 import pandas as pd
 import streamlit as st
 import requests
 import io
-from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
+# Khai báo các thư viện
+import pandas as pd
+import streamlit as st
+import requests
+import io
+import numpy as np
 
 # Khai báo URL dữ liệu
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
@@ -93,7 +101,7 @@ if st.button("Xử lý"):
         item_matrix = pd.pivot_table(item_data, values='overall', index='reviewerID', columns='asin', fill_value=0)
 
         # Tính độ tương tự cosine giữa các sản phẩm
-        similarity_matrix = cosine_similarity(item_matrix.T)
+        similarity_matrix = np.dot(item_matrix, item_matrix.T)
 
         # Lấy chỉ số của sản phẩm được chọn
         item_index = item_data.index[0]
@@ -107,3 +115,4 @@ if st.button("Xử lý"):
         st.write(similar_item_data)
     else:
         st.write("Mã sản phẩm không hợp lệ!")
+
