@@ -38,7 +38,7 @@ if st.button("Khuyến nghị"):
         st.error("ID người dùng không hợp lệ.")
     else:
         # Lấy danh sách sản phẩm chưa được người dùng đánh giá
-        items_to_recommend = trainset.build_anti_testset().for_user(user_id)
+        items_to_recommend = trainset.build_anti_testset().filter(lambda x: x[0] == user_id)
 
         # Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
         predictions = model.test(items_to_recommend)
