@@ -19,6 +19,7 @@ pd.set_option('display.max_colwidth', None)
 
 # Hiển thị bảng dữ liệu
 st.dataframe(data)
+st.dataframe(data.iloc[:, [1,2,4,5,6])
 
 
 
