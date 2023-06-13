@@ -15,7 +15,13 @@ assert response.status_code == 200, 'Could not download the data'
 
 # Đọc dữ liệu vào DataFrame
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
-st.dataframe(data)
+pd.set_option('display.max_colwidth', None)
+
+# Chọn chỉ mục của các cột muốn hiển thị
+selected_columns = ['reviewerID', 'asin', 'overall']
+
+# Hiển thị DataFrame với các cột đã chọn
+st.dataframe(data[selected_columns])
 
 from surprise import Dataset, Reader
 from surprise.model_selection import cross_validate
@@ -25,7 +31,7 @@ from surprise import NMF
 reader = Reader(rating_scale=(1, 5))
 
 # Tạo một đối tượng Dataset từ DataFrame
-dataset = Dataset.load_from_df(data[['userID', 'itemID', 'rating']], reader)
+dataset = Dataset.load_from_df(data[['reviewerID', 'asin', 'overall']], reader)
 
 # Xây dựng mô hình NMF với số lượng yếu tố latents = 10
 model = NMF(n_factors=10)
@@ -52,11 +58,11 @@ top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
 
 # Lấy danh sách sản phẩm được khuyến nghị
 recommended_items = [(pred.iid, pred.est) for pred in top_k_predictions]
-recommended_df = pd.DataFrame(recommended_items, columns=['ProductID', 'Score'])
+recommended_df = pd.DataFrame(recommended_items, columns=['asin', 'rating'])
 
 # Merge thông tin về sản phẩm từ DataFrame gốc
-recommended_df = recommended_df.merge(data[['ProductID', 'itemName']], on='ProductID', how='left')
+recommended_df = recommended_df.merge(data[['asin', 'reviewerID']], on='asin', how='left')
 
-# Hiển thị danh sách sản phẩm được khuyến nghị
 st.write("Top", k, "sản phẩm được khuyến nghị:")
-st.dataframe(recommended_df[['ProductID', 'itemName', 'Score']])
+st.dataframe(recommended_df)
+
