@@ -35,20 +35,21 @@ k = int(k) if k.isnumeric() else 0
 trainset = dataset.build_full_trainset()
 model.fit(trainset)
 
-# Lấy danh sách sản phẩm chưa được người dùng đánh giá
-items_to_recommend = [iid for iid in trainset.all_items() if iid not in trainset.ur[user_id]]
+# Kiểm tra nút lệnh được nhấn
+if st.button("Khuyến nghị"):
+    # Lấy danh sách sản phẩm chưa được người dùng đánh giá
+    items_to_recommend = trainset.build_anti_testset().for_user(user_id)
 
-# Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
-predictions = [model.predict(user_id, iid) for iid in items_to_recommend]
+    # Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
+    predictions = model.test(items_to_recommend)
 
-# Sắp xếp dự đoán theo xếp hạng giảm dần
-top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
+    # Sắp xếp dự đoán theo xếp hạng giảm dần
+    top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
 
-# Hiển thị danh sách sản phẩm được khuyến nghị
-recommended_items = [pred.iid for pred in top_k_predictions]
-recommended_df = data[data['asin'].isin(recommended_items)]
-recommended_df = recommended_df[['asin', 'overall']]
-recommended_df = recommended_df.drop_duplicates()
+    # Lấy danh sách sản phẩm được khuyến nghị và điểm dự đoán
+    recommended_items = [(pred.iid, pred.est) for pred in top_k_predictions]
+    recommended_df = pd.DataFrame(recommended_items, columns=['asin', 'prediction'])
 
-st.write(f"Top {k} sản phẩm được khuyến nghị:")
-st.dataframe(recommended_df)
+    # Hiển thị danh sách sản phẩm được khuyến nghị
+    st.write(f"Top {k} sản phẩm được khuyến nghị:")
+    st.dataframe(recommended_df)
