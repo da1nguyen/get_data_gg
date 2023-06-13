@@ -16,6 +16,8 @@ assert response.status_code == 200, 'Could not download the data'
 # Đọc dữ liệu vào DataFrame
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 
+st.write(data)
+
 # Khai báo các tên cột trong DataFrame
 column_mapping = {
     'reviewerID': 'userID',
