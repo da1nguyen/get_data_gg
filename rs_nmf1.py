@@ -16,8 +16,6 @@ assert response.status_code == 200, 'Could not download the data'
 # Đọc dữ liệu vào DataFrame
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 
-st.write(data)
-
 # Khai báo các tên cột trong DataFrame
 column_mapping = {
     'reviewerID': 'userID',
@@ -47,15 +45,16 @@ k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", min_va
 
 if st.button("Khuyến nghị"):
     # Lấy danh sách sản phẩm chưa được người dùng đánh giá
-    items_to_recommend = trainset.build_anti_testset().uid_to_iid[user_id]
+    items_to_recommend = [iid for uid, iid, _ in trainset.build_anti_testset() if uid == user_id]
 
     # Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
-    predictions = model.test(items_to_recommend)
+    predictions = model.test([(user_id, iid, 0) for iid in items_to_recommend])
 
     # Sắp xếp dự đoán theo xếp hạng giảm dần
     top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
 
     # Hiển thị danh sách sản phẩm được khuyến nghị
     recommended_items = [pred.iid for pred in top_k_predictions]
+    recommended_df = data[data['itemID'].isin(recommended_items)][['itemID', 'itemName']]
     st.write("Top", k, "sản phẩm được khuyến nghị:")
-    st.write(data[data['itemID'].isin(recommended_items)][['itemID', 'itemName']])
+    st.dataframe(recommended_df)
