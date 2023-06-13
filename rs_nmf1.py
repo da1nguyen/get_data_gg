@@ -1,12 +1,19 @@
-import pandas as pd
-import streamlit as st
-from sklearn.metrics.pairwise import cosine_similarity
+# Khai báo các thư viện
 
-# Khai báo URL dữ liệu
-data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
+# Chỉ ra dữ liệu (ở đây chứa một file csv)
+data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
-# Yêu cầu dữ liệu từ URL
-data = pd.read_csv(data_url)
+# Yêu cầu dữ liệu từ link kết url trên
+response = requests.get(data_url)
+
+# Kiểm tra xem link có thể nhận về trực tiếp hay không
+assert response.status_code == 200, 'Could not download the data'
+
+# Đọc dữ liệu vào DataFrame
+data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+pd.set_option('display.max_colwidth', None)
+
+st.dataframe(data)
 
 # Lấy danh sách mã sản phẩm
 items = data['asin'].unique()
