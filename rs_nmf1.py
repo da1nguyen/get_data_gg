@@ -26,17 +26,15 @@ item_id = st.text_input("Nhập mã sản phẩm:")
 # Số lượng sản phẩm khuyến nghị
 k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", min_value=1, max_value=10, step=1)
 
-# Nút xử lý để khuyến nghị
-if st.button("Khuyến nghị"):
-    # Tìm index của sản phẩm trong ma trận đánh giá
-    item_index = data[data['asin'] == item_id].index[0]
+# Tìm index của sản phẩm trong ma trận đánh giá
+item_index = data[data['asin'] == item_id].index[0]
 
-    # Tìm top k sản phẩm tương tự
-    similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
+# Tìm top k sản phẩm tương tự
+similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
 
-    # Lấy thông tin sản phẩm khuyến nghị
-    recommended_items = data.loc[similar_items, 'asin']
+# Lấy thông tin sản phẩm khuyến nghị
+recommended_items = data.loc[similar_items, 'asin']
 
-    # Hiển thị danh sách sản phẩm khuyến nghị
-    st.write(f"Top {k} sản phẩm tương tự:")
-    st.write(recommended_items)
+# Hiển thị danh sách sản phẩm khuyến nghị
+st.write(f"Top {k} sản phẩm tương tự:")
+st.write(recommended_items)
