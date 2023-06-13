@@ -16,7 +16,7 @@ st.write(data.head())
 st.write(data.info())
 
 # Xử lý dữ liệu: loại bỏ null, không xác định và chuyển đổi tất cả thành số
-data = data.dropna()
+data = data.fillna(0)  # Thay thế NaN bằng 0
 data = data.apply(pd.to_numeric, errors='coerce')
 R = data.values
 
