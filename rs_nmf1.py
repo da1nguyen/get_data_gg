@@ -35,7 +35,8 @@ k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", min_va
 
 if st.button("Khuyến nghị"):
     # Lấy danh sách sản phẩm chưa được người dùng đánh giá
-    items_to_recommend = trainset.build_anti_testset().for_user(user_id)
+    user = trainset.to_inner_uid(user_id)
+    items_to_recommend = trainset.build_anti_testset().for_user(user)
 
     # Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
     predictions = model.test(items_to_recommend)
@@ -47,5 +48,6 @@ if st.button("Khuyến nghị"):
     recommended_items = [(pred.iid, pred.est) for pred in top_k_predictions]
     recommended_df = pd.DataFrame(recommended_items, columns=['asin', 'rating'])
     recommended_df = recommended_df.merge(data[['asin', 'reviewerID']], on='asin', how='left')
+
     st.write("Top", k, "sản phẩm được khuyến nghị:")
-    st.dataframe(recommended_df)
+    st.table(recommended_df[['asin', 'rating']])
