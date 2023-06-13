@@ -53,3 +53,5 @@ if st.button("Khuyến nghị"):
         recommended_items = [pred.iid for pred in top_k_predictions]
         recommended_df = data[data['asin'].isin(recommended_items)]
         st.write("Top", k, "sản phẩm được khuyến nghị:")
+        st.write(recommended_df)
+
