@@ -12,7 +12,7 @@ data = pd.read_csv(data_url)
 items = data['asin'].unique()
 
 # Hiển thị danh sách mã sản phẩm để chọn
-selected_item = st.selectbox("Chọn mã sản phẩm:", items, format_func=lambda x: x[:20])
+selected_item = st.selectbox("Chọn mã sản phẩm:", items, format_func=lambda x: x[:20], key="selected_item")
 
 # Lấy chỉ số của sản phẩm được chọn
 item_index = data[data['asin'] == selected_item].index[0]
@@ -36,6 +36,7 @@ result_df = pd.DataFrame({
 # Hiển thị danh sách sản phẩm khuyến nghị
 st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(result_df)
+
 
 
 ####################################################################################################
