@@ -1,41 +1,37 @@
 import pandas as pd
 import streamlit as st
-import requests
-import io
 from surprise import Dataset, Reader, NMF
-from surprise.model_selection import cross_validate
 
 # Khai báo URL dữ liệu
 data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
 
-# Yêu cầu dữ liệu từ URL
-response = requests.get(data_url)
+# Đọc dữ liệu từ URL
+data = pd.read_csv(data_url)
 
-# Kiểm tra xem có lỗi trong quá trình tải dữ liệu không
-assert response.status_code == 200, 'Could not download the data'
+# Chọn các cột reviewerID, asin và overall
+data = data[['reviewerID', 'asin', 'overall']]
 
-# Đọc dữ liệu vào DataFrame
-data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+# Hiển thị DataFrame trên Streamlit
+st.write(data)
 
-# Hiển thị DataFrame
-st.dataframe(data)
-
-# Xây dựng mô hình khuyến nghị
+# Tạo một đối tượng Reader để định dạng dữ liệu
 reader = Reader(rating_scale=(1, 5))
-dataset = Dataset.load_from_df(data[['reviewerID', 'asin', 'overall']], reader)
-model = NMF(n_factors=10)
-cross_validate(model, dataset, measures=['RMSE', 'MAE'], cv=5, verbose=True)
 
-# Nhập thông tin từ người dùng
-user_id = st.text_input("Nhập ID người dùng:")
-k = st.text_input("Nhập số lượng sản phẩm khuyến nghị:")
-k = int(k) if k.isnumeric() else 0
+# Tạo một đối tượng Dataset từ DataFrame
+dataset = Dataset.load_from_df(data, reader)
+
+# Xây dựng mô hình NMF với số lượng yếu tố latents = 10
+model = NMF(n_factors=10)
 
 # Đào tạo mô hình trên toàn bộ dữ liệu
 trainset = dataset.build_full_trainset()
 model.fit(trainset)
 
-# Kiểm tra nút lệnh được nhấn
+# Lấy ID người dùng đầu vào từ người dùng
+user_id = st.text_input("Nhập ID người dùng:")
+k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", min_value=1, max_value=len(data), value=3)
+
+# Xử lý khi nút được nhấn
 if st.button("Khuyến nghị"):
     # Lấy danh sách sản phẩm chưa được người dùng đánh giá
     items_to_recommend = trainset.build_anti_testset().for_user(user_id)
@@ -46,10 +42,8 @@ if st.button("Khuyến nghị"):
     # Sắp xếp dự đoán theo xếp hạng giảm dần
     top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
 
-    # Lấy danh sách sản phẩm được khuyến nghị và điểm dự đoán
-    recommended_items = [(pred.iid, pred.est) for pred in top_k_predictions]
-    recommended_df = pd.DataFrame(recommended_items, columns=['asin', 'prediction'])
-
     # Hiển thị danh sách sản phẩm được khuyến nghị
-    st.write(f"Top {k} sản phẩm được khuyến nghị:")
-    st.dataframe(recommended_df)
+    recommended_items = [pred.iid for pred in top_k_predictions]
+    recommended_df = data[data['asin'].isin(recommended_items)]
+    st.write("Top", k, "sản phẩm được khuyến nghị:")
+    st.write(recommended_df)
