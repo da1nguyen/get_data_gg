@@ -1,16 +1,25 @@
 # Import các thư viện cần thiết
-import streamlit as st
-import gdown
 import pandas as pd
-from surprise import Dataset, Reader, NMF
+import streamlit as st
+import requests
 import io
 
-# Link tải dữ liệu
-data_url = 'https://drive.google.com/uc?id=1351xVuTBwyqnKVzpHbN5tbKD1rBeMpgQ'
+# ID của file trên Google Drive
+file_id = '1351xVuTBwyqnKVzpHbN5tbKD1rBeMpgQ'
 
-# Tải dữ liệu trực tiếp vào DataFrame
-url = gdown.download(data_url, quiet=False)
-data = pd.read_csv(io.StringIO(url))
+# Link tải dữ liệu
+data_url = f'https://drive.google.com/uc?export=download&id={file_id}'
+
+# Tải dữ liệu từ URL
+response = requests.get(data_url)
+
+# Đảm bảo rằng tải dữ liệu thành công
+assert response.status_code == 200, 'Could not download the data'
+
+# Tạo một đối tượng file-like từ dữ liệu thu được
+data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+
+# Hiển thị DataFrame
 st.dataframe(data)
 
 # # Xử lý dữ liệu
