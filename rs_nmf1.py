@@ -35,7 +35,7 @@ dataset = Dataset.load_from_df(data[['userID', 'ProductID', 'rating']], reader)
 # Xây dựng mô hình NMF với số lượng yếu tố latents = 10
 model = NMF(n_factors=10)
 
-# Đào tạo mô hình trên toàn bộ dữ liệu
+# Đào tạo mô hình trên toàn bộ dữ liệu ...
 trainset = dataset.build_full_trainset()
 model.fit(trainset)
 
