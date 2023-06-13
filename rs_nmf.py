@@ -29,7 +29,7 @@ st.dataframe(data.iloc[:, selected_columns])
 reader = Reader(rating_scale=(1, 5))
 
 # Tạo một đối tượng Dataset từ DataFrame
-dataset = Dataset.load_from_df(data[['userID', 'itemID', 'rating']], reader)
+dataset = Dataset.load_from_df(data[['reviewerID', 'asin', 'overall']], reader)
 
 # Xây dựng mô hình NMF với số lượng yếu tố latents = 10
 model = NMF(n_factors=10)
