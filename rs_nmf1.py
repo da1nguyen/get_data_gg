@@ -54,14 +54,12 @@
 #         recommended_df = data[data['asin'].isin(recommended_items)]
 #         st.write("Top", k, "sản phẩm được khuyến nghị:")
 #         st.write(recommended_df)
+# Khai báo các thư viện
 import pandas as pd
 import streamlit as st
 import requests
 import io
-from surprise import Dataset, Reader
-from surprise.model_selection import cross_validate
-from surprise import NMF
-from scipy.spatial.distance import cosine
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Khai báo URL dữ liệu
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
@@ -76,48 +74,36 @@ assert response.status_code == 200, 'Could not download the data'
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 pd.set_option('display.max_colwidth', None)
 
-# Chọn chỉ mục của các cột muốn hiển thị
-selected_columns = ['reviewerID', 'asin', 'overall']
+# Lấy danh sách các sản phẩm
+item_list = data['asin'].unique()
 
-# Hiển thị DataFrame với các cột đã chọn
-st.dataframe(data[selected_columns])
+# Hiển thị danh sách các sản phẩm
+st.write("Danh sách các sản phẩm:")
+st.write(item_list)
 
-# Tạo một đối tượng Reader để định dạng dữ liệu
-reader = Reader(rating_scale=(1, 5))
-
-# Tạo một đối tượng Dataset từ DataFrame
-dataset = Dataset.load_from_df(data[['reviewerID', 'asin', 'overall']], reader)
-
-# Xây dựng mô hình NMF với số lượng yếu tố latents = 10
-model = NMF(n_factors=10)
-
-# Đào tạo mô hình trên dữ liệu
-cross_validate(model, dataset, measures=['RMSE', 'MAE'], cv=5, verbose=True)
-
-# Lấy mã người dùng đầu vào từ người dùng
-user_id = st.text_input("Nhập mã người dùng:")
-k = int(st.text_input("Nhập số lượng sản phẩm khuyến nghị:"))
-
-# Đào tạo mô hình trên toàn bộ dữ liệu
-trainset = dataset.build_full_trainset()
-model.fit(trainset)
-
-# Tìm top k sản phẩm tương tự dựa trên mã sản phẩm đầu vào
+# Nhập mã sản phẩm để tìm các sản phẩm tương tự
 item_id = st.text_input("Nhập mã sản phẩm:")
-similar_items = []
-item_index = trainset.to_inner_iid(item_id)
-item_vector = model.qi[item_index]
 
-for i in range(trainset.n_items):
-    if i != item_index:
-        other_item_vector = model.qi[i]
-        similarity = 1 - cosine(item_vector, other_item_vector)
-        similar_items.append((trainset.to_raw_iid(i), similarity))
+if st.button("Xử lý"):
+    if item_id in item_list:
+        # Tạo một DataFrame con chỉ chứa các đánh giá của sản phẩm được chọn
+        item_data = data[data['asin'] == item_id][['reviewerID', 'asin', 'overall']]
 
-similar_items = sorted(similar_items, key=lambda x: x[1], reverse=True)[:k]
+        # Tạo một ma trận đánh giá sản phẩm
+        item_matrix = pd.pivot_table(item_data, values='overall', index='reviewerID', columns='asin', fill_value=0)
 
-# Hiển thị danh sách sản phẩm tương tự
-st.write("Top", k, "sản phẩm tương tự cho mã sản phẩm", item_id)
-for item in similar_items:
-    st.write(item[0])
+        # Tính độ tương tự cosine giữa các sản phẩm
+        similarity_matrix = cosine_similarity(item_matrix.T)
 
+        # Lấy chỉ số của sản phẩm được chọn
+        item_index = item_data.index[0]
+
+        # Tìm top k sản phẩm tương tự
+        similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
+
+        # Hiển thị danh sách sản phẩm tương tự
+        similar_item_data = data.loc[similar_items][['asin', 'overall']]
+        st.write("Top", k, "sản phẩm tương tự:")
+        st.write(similar_item_data)
+    else:
+        st.write("Mã sản phẩm không hợp lệ!")
