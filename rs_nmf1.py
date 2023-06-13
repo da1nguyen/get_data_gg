@@ -1,3 +1,4 @@
+
 import pandas as pd
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
@@ -37,8 +38,8 @@ result_df = pd.DataFrame({
 st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(result_df)
 
-# Tùy chỉnh độ rộng của ô nhập liệu
-st.markdown('<style>input[type="number"] {width: 100px;}</style>', unsafe_allow_html=True)
+# Tùy chỉnh độ rộng của select box
+st.markdown('<style>.css-1rtrjtb {width: 150px;}</style>', unsafe_allow_html=True)
 
 
 ####################################################################################################
