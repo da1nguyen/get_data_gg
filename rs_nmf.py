@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import requests
 import io
+import json
 
 # ID của file trên Google Drive
 file_id = '1351xVuTBwyqnKVzpHbN5tbKD1rBeMpgQ'
@@ -15,8 +16,11 @@ response = requests.get(data_url)
 # Đảm bảo rằng tải dữ liệu thành công
 assert response.status_code == 200, 'Could not download the data'
 
-# Tạo một đối tượng file-like từ dữ liệu thu được
-data = pd.read_json(io.StringIO(response.content.decode('utf-8')))
+# Phân tích dữ liệu JSON
+data = json.loads(response.content.decode('utf-8'))
+
+# Chuyển đổi dữ liệu JSON thành DataFrame
+df = pd.json_normalize(data)
 
 # Hiển thị DataFrame
-st.dataframe(data)
+st.dataframe(df)
