@@ -37,11 +37,14 @@ if st.button("Khuyến nghị"):
     if user_id not in data['reviewerID'].unique():
         st.error("ID người dùng không hợp lệ.")
     else:
+        # Lấy danh sách các sản phẩm mà người dùng đã đánh giá
+        rated_items = data[data['reviewerID'] == user_id]['asin'].tolist()
+
         # Lấy danh sách sản phẩm chưa được người dùng đánh giá
-        items_to_recommend = trainset.build_anti_testset().filter(lambda x: x[0] == user_id)
+        items_to_recommend = list(set(data['asin'].unique()) - set(rated_items))
 
         # Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
-        predictions = model.test(items_to_recommend)
+        predictions = [model.predict(user_id, item_id) for item_id in items_to_recommend]
 
         # Sắp xếp dự đoán theo xếp hạng giảm dần
         top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
@@ -50,4 +53,3 @@ if st.button("Khuyến nghị"):
         recommended_items = [pred.iid for pred in top_k_predictions]
         recommended_df = data[data['asin'].isin(recommended_items)]
         st.write("Top", k, "sản phẩm được khuyến nghị:")
-        st.write(recommended_df)
