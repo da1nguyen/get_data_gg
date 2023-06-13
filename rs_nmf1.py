@@ -12,7 +12,7 @@ data = pd.read_csv(data_url)
 items = data['asin'].unique()
 
 # Hiển thị danh sách mã sản phẩm để chọn
-selected_item = st.selectbox("Chọn mã sản phẩm:", items, index=0, format_func=lambda item: item[:10])
+selected_item = st.selectbox("Chọn mã sản phẩm:", items, index=0)
 
 # Lấy chỉ số của sản phẩm được chọn
 item_index = data[data['asin'] == selected_item].index[0]
@@ -38,7 +38,16 @@ st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(result_df)
 
 # Tùy chỉnh chiều dài của select box
-st.markdown('<style>.css-1xq5l4v {width: 20px;}</style>', unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    .st-eb {
+        width: 20px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 ####################################################################################################
