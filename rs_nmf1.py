@@ -4,6 +4,7 @@ import streamlit as st
 import requests
 import io
 from surprise import Dataset, Reader, NMF
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Chỉ ra dữ liệu (ở đây chứa một file csv)
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
