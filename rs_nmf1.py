@@ -56,38 +56,68 @@
 #         st.write(recommended_df)
 import pandas as pd
 import streamlit as st
-from sklearn.metrics.pairwise import cosine_similarity
+import requests
+import io
+from surprise import Dataset, Reader
+from surprise.model_selection import cross_validate
+from surprise import NMF
+from scipy.spatial.distance import cosine
 
 # Khai báo URL dữ liệu
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
 # Yêu cầu dữ liệu từ URL
-data = pd.read_csv(data_url)
+response = requests.get(data_url)
 
-# Hiển thị danh sách mã sản phẩm để người dùng chọn
-product_ids = data['asin'].unique()
-selected_product_id = st.selectbox("Chọn mã sản phẩm:", product_ids)
+# Kiểm tra xem có lỗi trong quá trình tải dữ liệu không
+assert response.status_code == 200, 'Could not download the data'
 
-# Lọc dữ liệu dựa trên mã sản phẩm được chọn
-selected_product_data = data[data['asin'] == selected_product_id]
+# Đọc dữ liệu vào DataFrame
+data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+pd.set_option('display.max_colwidth', None)
 
-# Tạo DataFrame chứa thông tin các sản phẩm tương tự
-similar_products_df = pd.DataFrame(columns=['asin', 'title', 'similarity'])
+# Chọn chỉ mục của các cột muốn hiển thị
+selected_columns = ['reviewerID', 'asin', 'overall']
 
-# Tính độ tương tự cosine giữa sản phẩm được chọn và các sản phẩm khác
-for index, row in data.iterrows():
-    if row['asin'] != selected_product_id:
-        similarity = cosine_similarity(selected_product_data['features'].values.reshape(1, -1), row['features'].reshape(1, -1))[0][0]
-        similar_products_df = similar_products_df.append({'asin': row['asin'], 'title': row['title'], 'similarity': similarity}, ignore_index=True)
+# Hiển thị DataFrame với các cột đã chọn
+st.dataframe(data[selected_columns])
 
-# Sắp xếp các sản phẩm tương tự theo độ tương tự giảm dần
-similar_products_df = similar_products_df.sort_values(by='similarity', ascending=False)
+# Tạo một đối tượng Reader để định dạng dữ liệu
+reader = Reader(rating_scale=(1, 5))
 
-# Lấy top k sản phẩm tương tự
-k = st.slider("Chọn số lượng sản phẩm tương tự:", min_value=1, max_value=len(similar_products_df), value=5)
-top_k_similar_products = similar_products_df.head(k)
+# Tạo một đối tượng Dataset từ DataFrame
+dataset = Dataset.load_from_df(data[['reviewerID', 'asin', 'overall']], reader)
+
+# Xây dựng mô hình NMF với số lượng yếu tố latents = 10
+model = NMF(n_factors=10)
+
+# Đào tạo mô hình trên dữ liệu
+cross_validate(model, dataset, measures=['RMSE', 'MAE'], cv=5, verbose=True)
+
+# Lấy mã người dùng đầu vào từ người dùng
+user_id = st.text_input("Nhập mã người dùng:")
+k = int(st.text_input("Nhập số lượng sản phẩm khuyến nghị:"))
+
+# Đào tạo mô hình trên toàn bộ dữ liệu
+trainset = dataset.build_full_trainset()
+model.fit(trainset)
+
+# Tìm top k sản phẩm tương tự dựa trên mã sản phẩm đầu vào
+item_id = st.text_input("Nhập mã sản phẩm:")
+similar_items = []
+item_index = trainset.to_inner_iid(item_id)
+item_vector = model.qi[item_index]
+
+for i in range(trainset.n_items):
+    if i != item_index:
+        other_item_vector = model.qi[i]
+        similarity = 1 - cosine(item_vector, other_item_vector)
+        similar_items.append((trainset.to_raw_iid(i), similarity))
+
+similar_items = sorted(similar_items, key=lambda x: x[1], reverse=True)[:k]
 
 # Hiển thị danh sách sản phẩm tương tự
-st.write("Top", k, "sản phẩm tương tự cho mã sản phẩm", selected_product_id)
-st.dataframe(top_k_similar_products[['asin', 'title', 'similarity']])
+st.write("Top", k, "sản phẩm tương tự cho mã sản phẩm", item_id)
+for item in similar_items:
+    st.write(item[0])
 
