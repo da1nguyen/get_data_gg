@@ -1,35 +1,19 @@
-import requests
-import os
-import tempfile
-
-def download_file(url):
-    local_filename = url.split('/')[-1]
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with tempfile.NamedTemporaryFile(delete=False) as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-    return f.name
-
-data_path = 'http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Musical_Instruments_5.json.gz'
-
-# Tải file về máy
-local_path = download_file(data_path)
-
-# Tải dữ liệu
-df = get_df(local_path)
-
-# Xóa file tạm sau khi đã sử dụng
-os.remove(local_path)
-
-# Tải dữ liệu
-df = get_df(data_path)
+# Import các thư viện cần thiết
 import streamlit as st
+import gdown
+import pandas as pd
 from surprise import Dataset, Reader, NMF
-from surprise.model_selection import train_test_split
+import io
+
+# Link tải dữ liệu
+data_url = 'https://drive.google.com/uc?id=1351xVuTBwyqnKVzpHbN5tbKD1rBeMpgQ'
+
+# Tải dữ liệu trực tiếp vào DataFrame
+url = gdown.download(data_url, quiet=False)
+data = pd.read_csv(io.StringIO(url))
 
 # Xử lý dữ liệu
-ratings_df = df[['reviewerID', 'asin', 'overall']]
+ratings_df = data[['reviewerID', 'asin', 'overall']]
 reader = Reader(rating_scale=(1, 5))
 data = Dataset.load_from_df(ratings_df, reader)
 
@@ -49,8 +33,8 @@ k = st.slider("Số sản phẩm khuyến nghị:", min_value=1, max_value=20, v
 if st.button("Khuyến nghị"):
     if user_id:
         # Lấy danh sách các sản phẩm chưa được người dùng này đánh giá
-        iids = df['asin'].unique()
-        iids_unrated = [iid for iid in iids if not trainset.knows_item(iid)]
+        iids = data['asin'].unique()
+        iids_unrated = [iid for iid in iids if iid not in [x for x, _ in trainset.ir[trainset.to_inner_uid(user_id)]]]
 
         # Dự đoán điểm đánh giá cho các sản phẩm chưa được đánh giá
         predictions = [model.predict(user_id, iid) for iid in iids_unrated]
@@ -61,5 +45,3 @@ if st.button("Khuyến nghị"):
         # Hiển thị top k sản phẩm được khuyến nghị
         recommended_items = [pred.iid for pred in predictions[:k]]
         st.write("Sản phẩm được khuyến nghị:", recommended_items)
-    else:
-        st.write("Vui lòng nhập mã người dùng.")
