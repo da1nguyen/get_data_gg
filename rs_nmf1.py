@@ -5,7 +5,7 @@ import requests
 import io
 
 # Chỉ ra dữ liệu (ở đây chứa một file csv)
-data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
+data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
 # Yêu cầu dữ liệu từ link kết url trên
 response = requests.get(data_url)
@@ -15,8 +15,6 @@ assert response.status_code == 200, 'Could not download the data'
 
 # Đọc dữ liệu vào DataFrame
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
-
-# Hiển thị DataFrame với các cột đã chọn
 st.dataframe(data)
 
 from surprise import Dataset, Reader
@@ -27,30 +25,38 @@ from surprise import NMF
 reader = Reader(rating_scale=(1, 5))
 
 # Tạo một đối tượng Dataset từ DataFrame
-dataset = Dataset.load_from_df(data[['reviewerID', 'asin', 'overall']], reader)
+dataset = Dataset.load_from_df(data[['userID', 'itemID', 'rating']], reader)
 
 # Xây dựng mô hình NMF với số lượng yếu tố latents = 10
 model = NMF(n_factors=10)
+
+# Đào tạo mô hình trên dữ liệu
+cross_validate(model, dataset, measures=['RMSE', 'MAE'], cv=5, verbose=True)
+
+# Lấy ID người dùng đầu vào từ người dùng
+user_id = st.text_input("Nhập ID người dùng:")
+k = int(st.text_input("Nhập số lượng sản phẩm khuyến nghị:"))
 
 # Đào tạo mô hình trên toàn bộ dữ liệu
 trainset = dataset.build_full_trainset()
 model.fit(trainset)
 
-# Lấy ID người dùng đầu vào từ người dùng
-user_id = st.text_input("Nhập ID người dùng:")
-k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", min_value=1, step=1)
+# Lấy danh sách sản phẩm chưa được người dùng đánh giá
+items_to_recommend = trainset.build_anti_testset().for_user(user_id)
 
-if st.button("Khuyến nghị"):
-    # Lấy danh sách sản phẩm chưa được người dùng đánh giá
-    user = trainset.to_inner_uid(user_id)
-    items_to_recommend = [(trainset.to_raw_iid(iid), model.predict(uid=user, iid=iid).est) for iid in trainset.all_items() if iid not in trainset.ur[user]]
+# Dự đoán xếp hạng cho sản phẩm chưa được đánh giá
+predictions = model.test(items_to_recommend)
 
-    # Sắp xếp dự đoán theo xếp hạng giảm dần
-    top_k_predictions = sorted(items_to_recommend, key=lambda x: x[1], reverse=True)[:k]
+# Sắp xếp dự đoán theo xếp hạng giảm dần
+top_k_predictions = sorted(predictions, key=lambda x: x.est, reverse=True)[:k]
 
-    # Hiển thị danh sách sản phẩm được khuyến nghị cùng với điểm số
-    recommended_df = pd.DataFrame(top_k_predictions, columns=['asin', 'rating'])
-    recommended_df = recommended_df.merge(data[['asin', 'reviewerID']], on='asin', how='left')
+# Lấy danh sách sản phẩm được khuyến nghị
+recommended_items = [(pred.iid, pred.est) for pred in top_k_predictions]
+recommended_df = pd.DataFrame(recommended_items, columns=['ProductID', 'Score'])
 
-    st.write("Top", k, "sản phẩm được khuyến nghị:")
-    st.table(recommended_df[['asin', 'rating']])
+# Merge thông tin về sản phẩm từ DataFrame gốc
+recommended_df = recommended_df.merge(data[['ProductID', 'itemName']], on='ProductID', how='left')
+
+# Hiển thị danh sách sản phẩm được khuyến nghị
+st.write("Top", k, "sản phẩm được khuyến nghị:")
+st.dataframe(recommended_df[['ProductID', 'itemName', 'Score']])
