@@ -11,7 +11,7 @@ data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
 # Yêu cầu dữ liệu từ URL
 response = requests.get(data_url)
 
-# Kiểm tra xem có lỗi trong quá trình tải dữ liệu không
+# Kiểm tra xem có lỗi trong quá trình tải dữ liệu không 
 assert response.status_code == 200, 'Could not download the data'
 
 # Đọc dữ liệu vào DataFrame
