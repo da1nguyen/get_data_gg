@@ -1,4 +1,9 @@
 # Khai báo các thư viện
+import pandas as pd
+import streamlit as st
+import requests
+import io
+from surprise import Dataset, Reader, NMF
 
 # Chỉ ra dữ liệu (ở đây chứa một file csv)
 data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
