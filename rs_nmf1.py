@@ -1,20 +1,15 @@
 import pandas as pd
 import streamlit as st
-import requests
+import gdown
 import io
 from surprise import Dataset, Reader, NMF
 
-# Link tải dữ liệu
+# Link tải dữ liệu từ Google Drive
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
-# Yêu cầu dữ liệu từ link url trên
-response = requests.get(data_url)
-
-# Kiểm tra xem link có thể nhận về trực tiếp hay không
-assert response.status_code == 200, 'Could not download the data'
-
-# Đọc dữ liệu từ response vào DataFrame
-data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+# Tải dữ liệu từ link Google Drive trực tiếp vào DataFrame
+url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
+data = pd.read_csv(url)
 
 # Tạo một đối tượng Reader để định dạng dữ liệu
 reader = Reader(rating_scale=(1, 5))
