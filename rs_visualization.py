@@ -1,59 +1,92 @@
-import streamlit as st
+# Khai báo các thư viện
 import pandas as pd
-import numpy as np
-from sklearn.decomposition import NMF
+import streamlit as st
 import requests
 import io
+from surprise import Dataset, Reader, NMF
+from sklearn.metrics.pairwise import cosine_similarity
 
-# Lấy dữ liệu từ Google Drive
+# Chỉ ra dữ liệu (ở đây chứa một file csv)
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
+
+
+# Yêu cầu dữ liệu từ link kết url trên
 response = requests.get(data_url)
+
+# Kiểm tra xem link có thể nhận về trực tiếp hay không
 assert response.status_code == 200, 'Could not download the data'
+
+# Đọc dữ liệu vào DataFrame
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+pd.set_option('display.max_colwidth', None)
 
-# Kiểm tra dữ liệu
-st.write(data.head())
-st.write(data.info())
+st.dataframe(data[['reviewerID','asin','overall','reviewText']].head())
 
-# Xử lý dữ liệu: loại bỏ null, không xác định và chuyển đổi tất cả thành số
-data = data.fillna(0)  # Thay thế NaN bằng 0
-data = data.apply(pd.to_numeric, errors='coerce')
-R = data.values
+# Lấy danh sách mã sản phẩm
+items = data['asin'].unique()
 
-# Kiểm tra lại dữ liệu
-st.write(data.head())
-st.write(data.info())
+# Hiển thị danh sách mã sản phẩm để chọn
+selected_item = st.selectbox("Chọn mã sản phẩm:", items, index=0, format_func=lambda item: item[:10])
 
-# Thực hiện NMF
-model = NMF(n_components=5, init='random', random_state=0)
-W = model.fit_transform(R)
-H = model.components_
+# Lấy chỉ số của sản phẩm được chọn
+item_index = data[data['asin'] == selected_item].index[0]
 
-# Trực quan hóa ma trận W và H
-st.title('NMF Decomposition')
-st.write('W Matrix')
-st.dataframe(pd.DataFrame(W))
-st.write('H Matrix')
-st.dataframe(pd.DataFrame(H))
+# Tính ma trận tương đồng cosine
+item_features = data.pivot(index='asin', columns='reviewerID', values='overall').fillna(0)
+similarity_matrix = cosine_similarity(item_features)
 
-# Xác định danh sách người dùng và sản phẩm
-users = data.iloc[:, 0]  # Giả sử cột đầu tiên là ID người dùng
-products = data.columns[1:]  # Giả sử các cột tiếp theo là ID sản phẩm
+# Nhập số lượng sản phẩm khuyến nghị
+k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", value=5, min_value=1, step=1)
 
-# Dự đoán đánh giá
-predicted_ratings = np.dot(W, H)
-predicted_ratings_df = pd.DataFrame(predicted_ratings, columns=products, index=users)
+# Tìm top k sản phẩm tương tự
 
-# Chọn người dùng từ thanh bên
-st.sidebar.title('Recommendation')
-selected_user = st.sidebar.selectbox('Select a User', users)
+import matplotlib.pyplot as plt
 
-# Khuyến nghị sản phẩm dựa trên phương pháp item-item
-similarities = np.dot(H.T, H)
-item_similarity_df = pd.DataFrame(similarities, index=products, columns=products)
+# Tạo DataFrame kết quả
+result_df = pd.DataFrame({
+    'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
+    'Độ tương đồng': similarity_matrix[item_index][similar_items]
+}).set_index('Mã sản phẩm')
 
-selected_user_ratings = predicted_ratings_df.loc[selected_user]
-similar_items = item_similarity_df[selected_user_ratings.idxmax()].sort_values(ascending=False).head(6)
+# Hiển thị danh sách sản phẩm khuyến nghị
+st.write("Danh sách sản phẩm khuyến nghị:")
+st.write(result_df)
 
-st.write('Top 5 Similar Products for User\'s Highest Rated Product')
-st.dataframe(similar_items)
+# Vẽ biểu đồ
+st.write("Biểu đồ độ tương đồng:")
+fig, ax = plt.subplots()
+result_df.plot(kind='barh', legend=False, ax=ax)
+plt.xlabel('Độ tương đồng')
+plt.tight_layout()
+st.pyplot(fig)
+
+result_df = pd.DataFrame({
+    'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
+    'Độ tương đồng': similarity_matrix[item_index][similar_items]
+})
+
+# Hiển thị danh sách sản phẩm khuyến nghị
+st.write("Danh sách sản phẩm khuyến nghị:")
+st.write(result_df)
+
+import matplotlib.pyplot as plt
+
+# ...
+
+# Tạo DataFrame kết quả
+result_df = pd.DataFrame({
+    'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
+    'Độ tương đồng': similarity_matrix[item_index][similar_items]
+}).set_index('Mã sản phẩm')
+
+# Hiển thị danh sách sản phẩm khuyến nghị
+st.write("Danh sách sản phẩm khuyến nghị:")
+st.write(result_df)
+
+# Vẽ biểu đồ
+st.write("Biểu đồ độ tương đồng:")
+fig, ax = plt.subplots()
+result_df.plot(kind='barh', legend=False, ax=ax)
+plt.xlabel('Độ tương đồng')
+plt.tight_layout()
+st.pyplot(fig)
