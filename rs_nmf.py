@@ -21,7 +21,7 @@ pd.set_option('display.max_colwidth', None)
 selected_columns = [1, 2, 4, 5, 7]  
 
 # Hiển thị DataFrame với các cột đã chọn
-st.table(data.iloc[:, selected_columns])
+st.dataframe(data.iloc[:, selected_columns])
 
 from surprise import Dataset, Reader
 from surprise.model_selection import cross_validate
