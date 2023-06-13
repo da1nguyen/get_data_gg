@@ -1,7 +1,7 @@
 # Khai báo các thư viện
 
 # Chỉ ra dữ liệu (ở đây chứa một file csv)
-data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
+data_url = 'https://drive.google.com/uc?id=1IXbptj9A5VD-yHh8I_70SZcv2hi8NY2e'
 
 # Yêu cầu dữ liệu từ link kết url trên
 response = requests.get(data_url)
