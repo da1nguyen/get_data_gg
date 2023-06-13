@@ -14,7 +14,7 @@ response = requests.get(data_url)
 assert response.status_code == 200, 'Could not download the data'
 
 # Đọc dữ liệu từ response vào DataFrame
-data = pd.read_json(io.StringIO(response.content.decode('utf-8')), lines=True)
+data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 
 # Tạo một đối tượng Reader để định dạng dữ liệu
 reader = Reader(rating_scale=(1, 5))
