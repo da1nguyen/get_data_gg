@@ -11,8 +11,18 @@ response = requests.get(data_url)
 assert response.status_code == 200, 'Could not download the data'
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
 
-# Tạo ma trận đánh giá
+# Kiểm tra dữ liệu
+st.write(data.head())
+st.write(data.info())
+
+# Xử lý dữ liệu: loại bỏ null, không xác định và chuyển đổi tất cả thành số
+data = data.dropna()
+data = data.apply(pd.to_numeric, errors='coerce')
 R = data.values
+
+# Kiểm tra lại dữ liệu
+st.write(data.head())
+st.write(data.info())
 
 # Thực hiện NMF
 model = NMF(n_components=5, init='random', random_state=0)
