@@ -5,10 +5,10 @@ import requests
 import io
 from surprise import Dataset, Reader, NMF
 from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
 
 # Chỉ ra dữ liệu (ở đây chứa một file csv)
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
-
 
 # Yêu cầu dữ liệu từ link kết url trên
 response = requests.get(data_url)
@@ -39,27 +39,9 @@ similarity_matrix = cosine_similarity(item_features)
 k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", value=5, min_value=1, step=1)
 
 # Tìm top k sản phẩm tương tự
-
-import matplotlib.pyplot as plt
+similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
 
 # Tạo DataFrame kết quả
-result_df = pd.DataFrame({
-    'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
-    'Độ tương đồng': similarity_matrix[item_index][similar_items]
-}).set_index('Mã sản phẩm')
-
-# Hiển thị danh sách sản phẩm khuyến nghị
-st.write("Danh sách sản phẩm khuyến nghị:")
-st.write(result_df)
-
-# Vẽ biểu đồ
-st.write("Biểu đồ độ tương đồng:")
-fig, ax = plt.subplots()
-result_df.plot(kind='barh', legend=False, ax=ax)
-plt.xlabel('Độ tương đồng')
-plt.tight_layout()
-st.pyplot(fig)
-
 result_df = pd.DataFrame({
     'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
     'Độ tương đồng': similarity_matrix[item_index][similar_items]
@@ -69,24 +51,12 @@ result_df = pd.DataFrame({
 st.write("Danh sách sản phẩm khuyến nghị:")
 st.write(result_df)
 
-import matplotlib.pyplot as plt
-
-# ...
-
-# Tạo DataFrame kết quả
-result_df = pd.DataFrame({
-    'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
-    'Độ tương đồng': similarity_matrix[item_index][similar_items]
-}).set_index('Mã sản phẩm')
-
-# Hiển thị danh sách sản phẩm khuyến nghị
-st.write("Danh sách sản phẩm khuyến nghị:")
-st.write(result_df)
-
-# Vẽ biểu đồ
-st.write("Biểu đồ độ tương đồng:")
+# Trực quan hóa kết quả
 fig, ax = plt.subplots()
-result_df.plot(kind='barh', legend=False, ax=ax)
-plt.xlabel('Độ tương đồng')
-plt.tight_layout()
+
+ax.bar(result_df['Mã sản phẩm'], result_df['Độ tương đồng'])
+ax.set_xlabel('Mã sản phẩm')
+ax.set_ylabel('Độ tương đồng')
+ax.set_title('Độ tương đồng của các sản phẩm khuyến nghị')
+
 st.pyplot(fig)
