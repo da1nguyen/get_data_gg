@@ -32,8 +32,6 @@ reader = Reader(rating_scale=(1, 5))
 
 # Tạo một đối tượng Dataset từ DataFrame
 
-reviewerID asin overall reviewText
-
 column_mapping = {
     'reviewerID': 'userID',
     'asin': 'itemID',
