@@ -1,21 +1,26 @@
+# Khai báo các thư viện
 import pandas as pd
 import streamlit as st
 import requests
 import io
 
-# Link tải dữ liệu
+# Chỉ ra dữ liệu (ở đây chứa một file csv)
 data_url = 'https://drive.google.com/uc?id=1MHLvwXQMgRKz9BMYqNE-NxPVUfoEmoYJ'
 
-# Tải dữ liệu từ URL
+# Yêu cầu dữ liệu từ link kết url trên
 response = requests.get(data_url)
 
-# Đảm bảo rằng tải dữ liệu thành công
+# Kiểm tra xem link có thể nhận về trực tiếp hay không
 assert response.status_code == 200, 'Could not download the data'
 
 # Đọc dữ liệu vào DataFrame
 data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+pd.set_option('display.max_colwidth', None)
 
-st.dataframe(data )
+# Hiển thị bảng dữ liệu
+st.dataframe(data)
+
+
 
 from surprise import Dataset, Reader
 from surprise.model_selection import cross_validate
