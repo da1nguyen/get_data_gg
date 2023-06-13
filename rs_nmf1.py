@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -13,8 +12,8 @@ data = pd.read_csv(data_url)
 items = data['asin'].unique()
 
 # Hiển thị danh sách mã sản phẩm để chọn
-# selected_item = st.selectbox("Chọn mã sản phẩm:", items)
-selected_item = st.selectbox("Chọn mã sản phẩm:", items, index=0)
+selected_item = st.selectbox("Chọn mã sản phẩm:", items, index=0, format_func=lambda item: item[:10])
+
 # Lấy chỉ số của sản phẩm được chọn
 item_index = data[data['asin'] == selected_item].index[0]
 
@@ -30,8 +29,8 @@ similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
 
 # Tạo DataFrame kết quả
 result_df = pd.DataFrame({
-'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
-'Độ tương đồng': similarity_matrix[item_index][similar_items]
+    'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
+    'Độ tương đồng': similarity_matrix[item_index][similar_items]
 })
 
 # Hiển thị danh sách sản phẩm khuyến nghị
