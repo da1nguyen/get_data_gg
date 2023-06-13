@@ -16,10 +16,10 @@ items = data['asin'].unique()
 selected_item = st.selectbox("Chọn mã sản phẩm:", items)
 
 # Lấy chỉ số của sản phẩm được chọn
-item_index = np.int32(data[data['asin'] == selected_item].index[0])
+item_index = data[data['asin'] == selected_item].index[0]
 
 # Tính ma trận tương đồng cosine
-item_features = data.drop_duplicates(subset='asin', keep='first').pivot(index='asin', columns='reviewerID', values='overall').fillna(0)
+item_features = data.pivot(index='asin', columns='reviewerID', values='overall').fillna(0)
 similarity_matrix = cosine_similarity(item_features)
 
 # Nhập số lượng sản phẩm khuyến nghị
@@ -28,7 +28,12 @@ k = st.number_input("Nhập số lượng sản phẩm khuyến nghị:", value=
 # Tìm top k sản phẩm tương tự
 similar_items = similarity_matrix[item_index].argsort()[::-1][1:k+1]
 
+# Tạo DataFrame kết quả
+result_df = pd.DataFrame({
+'Mã sản phẩm': data[data.index.isin(similar_items)]['asin'],
+'Độ tương đồng': similarity_matrix[item_index][similar_items]
+})
+
 # Hiển thị danh sách sản phẩm khuyến nghị
-recommended_items = data[data.index.isin(similar_items)]['asin']
 st.write("Danh sách sản phẩm khuyến nghị:")
-st.write(recommended_items)
+st.write(result_df)
